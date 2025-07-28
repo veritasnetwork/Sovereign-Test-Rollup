@@ -2,7 +2,10 @@
 mod risc0 {
     pub use sov_risc0_adapter::host::Risc0Host as ZkvmHost;
     pub use sov_risc0_adapter::Risc0 as Zkvm;
+    use sov_rollup_interface::zk::CryptoSpec;
     use std::sync::Arc;
+
+    pub type Hasher = <sov_risc0_adapter::Risc0CryptoSpec as CryptoSpec>::Hasher;
 
     fn should_skip_guest_build() -> bool {
         match std::env::var("SKIP_GUEST_BUILD")
@@ -46,9 +49,11 @@ mod risc0 {
 
 #[cfg(feature = "sp1")]
 mod sp1 {
+    use sov_rollup_interface::zk::CryptoSpec;
     pub use sov_sp1_adapter::host::SP1Host as ZkvmHost;
     pub use sov_sp1_adapter::SP1 as Zkvm;
     use std::sync::Arc;
+    pub type Hasher = <sov_sp1_adapter::SP1CryptoSpec as CryptoSpec>::Hasher;
 
     fn should_skip_guest_build() -> bool {
         match std::env::var("SKIP_GUEST_BUILD")
@@ -87,6 +92,7 @@ mod sp1 {
 mod mock_zkvm {
     pub use sov_mock_zkvm::MockZkvm as Zkvm;
     pub use sov_mock_zkvm::MockZkvmHost as ZkvmHost;
+    use sov_rollup_interface::zk::CryptoSpec;
     use std::sync::Arc;
 
     pub fn rollup_host_args() -> Arc<()> {
@@ -99,21 +105,26 @@ mod mock_zkvm {
         // Mock zkvm doesn't need the ELF from prover config
         ZkvmHost::new()
     }
+
+    pub type Hasher = <sov_mock_zkvm::MockZkvmCryptoSpec as CryptoSpec>::Hasher;
 }
 
 #[cfg(feature = "mock_zkvm")]
 pub use mock_zkvm::{
-    create_inner_vm_from_config, rollup_host_args, Zkvm as InnerZkvm, ZkvmHost as InnerZkvmHost,
+    create_inner_vm_from_config, rollup_host_args, Hasher, Zkvm as InnerZkvm,
+    ZkvmHost as InnerZkvmHost,
 };
 
 #[cfg(feature = "risc0")]
 pub use risc0::{
-    create_inner_vm_from_config, rollup_host_args, Zkvm as InnerZkvm, ZkvmHost as InnerZkvmHost,
+    create_inner_vm_from_config, rollup_host_args, Hasher, Zkvm as InnerZkvm,
+    ZkvmHost as InnerZkvmHost,
 };
 
 #[cfg(feature = "sp1")]
 pub use sp1::{
-    create_inner_vm_from_config, rollup_host_args, Zkvm as InnerZkvm, ZkvmHost as InnerZkvmHost,
+    create_inner_vm_from_config, rollup_host_args, Hasher, Zkvm as InnerZkvm,
+    ZkvmHost as InnerZkvmHost,
 };
 
 pub use sov_mock_zkvm::MockZkvm as OuterZkvm;

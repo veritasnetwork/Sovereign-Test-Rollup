@@ -16,6 +16,13 @@ block_time_ms = 3_000
 [storage]
 # The path to the rollup's data directory. Paths that do not begin with `/` are interpreted as relative paths.
 path = "./test-data/rollup-starter-data"
+user_commit_concurrency = 6
+# This is enough for getting started, but production environment needs more
+user_hashtable_buckets = 50_000_000
+kernel_commit_concurrency = 2
+# Do it rarely for start
+pruner_block_interval = 100_000
+pruner_versions_to_keep = 100
 
 # We define the rollup's genesis to occur at block number `start_height`. The rollup will ignore
 # any blocks before this height

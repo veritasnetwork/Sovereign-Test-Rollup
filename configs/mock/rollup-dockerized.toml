@@ -7,6 +7,13 @@ block_time_ms = 3_000
 
 [storage]
 path = "/mnt/state"
+user_commit_concurrency = 6
+# This is enough for getting started, but the production environment needs more
+user_hashtable_buckets = 50_000_000
+kernel_commit_concurrency = 2
+# Do it rarely for start
+pruner_block_interval = 100_000
+pruner_versions_to_keep = 100
 
 [runner]
 genesis_height = 0
