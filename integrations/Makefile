@@ -40,8 +40,12 @@ stop-celestia:
 	$(compose_down)
 
 clean: ## Clean up all docker compose resources
-	@echo "Cleaning up all docker compose resources..."
-	$(compose_down) --volumes --remove-orphans
-	@echo "Removing any dangling images..."
-	-docker image prune -f
-	@echo "Docker compose cleanup complete"
+	@if docker info >/dev/null 2>&1; then \
+		echo "Cleaning up all docker compose resources..."; \
+		$(compose_down) --volumes --remove-orphans 2>/dev/null || true; \
+		echo "Removing any dangling images..."; \
+		docker image prune -f 2>/dev/null || true; \
+		echo "Docker compose cleanup complete."; \
+	else \
+		echo "Docker is not running. Skipping integrations cleanup."; \
+	fi
