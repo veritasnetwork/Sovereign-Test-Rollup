@@ -12,6 +12,10 @@ use sov_modules_api::transaction::{PriorityFeeBips, Transaction, UnsignedTransac
 use sov_modules_api::{Amount, Spec};
 use sov_modules_rollup_blueprint::logging::default_rust_log_value;
 use sov_rollup_interface::common::SafeVec;
+use sov_rollup_interface::da::DaSpec;
+use sov_rollup_interface::zk::CryptoSpec;
+use sov_state::nomt::prover_storage::NomtProverStorage;
+use sov_state::DefaultStorageSpec;
 use std::env;
 use std::str::FromStr;
 use stf_starter::Runtime;
@@ -24,8 +28,17 @@ const TOKEN_NAME: &str = "sov-token";
 const TOKEN_DECIMALS: u8 = 6;
 const MAX_TX_FEE: Amount = Amount::new(100_000_000);
 
-type TestSpec =
-    ConfigurableSpec<MockDaSpec, MockZkvm, MockZkvm, EthereumAddress, Native, EvmCryptoSpec>;
+type Hasher = <EvmCryptoSpec as CryptoSpec>::Hasher;
+type NomtStorage = NomtProverStorage<DefaultStorageSpec<Hasher>, <MockDaSpec as DaSpec>::SlotHash>;
+type TestSpec = ConfigurableSpec<
+    MockDaSpec,
+    MockZkvm,
+    MockZkvm,
+    EthereumAddress,
+    Native,
+    EvmCryptoSpec,
+    NomtStorage,
+>;
 
 #[tokio::test(flavor = "multi_thread")]
 async fn bank_tx_tests() -> Result<(), anyhow::Error> {
@@ -104,6 +117,14 @@ async fn send_test_create_token_tx(client: &NodeClient) -> Result<(), anyhow::Er
         .subscribe_slots()
         .await
         .context("Failed to subscribe to slots!")?;
+
+    // Wait till rollup is ready
+    let _slot_number = slot_subscription
+        .next()
+        .await
+        .transpose()?
+        .map(|slot| slot.number)
+        .unwrap_or_default();
 
     client.client.send_txs_to_sequencer(&[tx]).await?;
 
