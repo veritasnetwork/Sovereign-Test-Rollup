@@ -17,11 +17,18 @@ postgres:
 	docker compose -f $(DOCKER_COMPOSE_DIR)/docker-compose.postgres.yml up
 
 check-docker:
-	@command -v docker > /dev/null 2>&1 || { echo "Docker is not installed"; exit 1; }
+	@if ! command -v docker >/dev/null 2>&1; then \
+		echo "Docker is not installed"; \
+		exit 1; \
+	elif ! docker info >/dev/null 2>&1; then \
+		echo "Docker daemon is not running"; \
+		exit 1; \
+	fi
 
 start-celestia:
+	@docker info >/dev/null 2>&1 || { echo "Docker daemon is not running. Cannot start Celestia."; exit 0; }
 	@echo "Starting celestia docker compose..."
-	$(docker_compose) up --build --force-recreate -d --quiet-pull
+	@$(docker_compose) up --build --force-recreate -d --quiet-pull
 	@echo "waiting for container 'celestia-node-0' to become operational..."
 	@while true; do \
 		timestamp=$$(date '+%Y-%m-%d %H:%M:%S'); \
