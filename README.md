@@ -11,11 +11,6 @@ It includes everything you need to create a rollup with customizable modules, RE
 - `crates/rollup`: Runs the main rollup binary. This includes both the full-node and the soft-confirming sequencer (as well as replica + fail-over logic.)
 - `examples/value-setter`: Example of Sovereign Rollup module.
 
-> **Note:** This repository uses the private [Sovereign SDK repo](https://github.com/Sovereign-Labs/sovereign-sdk-wip). Set this environment variable to enable SSH key authentication:
-> ```
-> export CARGO_NET_GIT_FETCH_WITH_CLI=true
-> ```
-
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
@@ -245,5 +240,4 @@ $ cargo run --rollup_config_path="configs/mock/genesis_without_paymaster.json"
 - Verify you're using the correct Rust version (1.88.0 or later)
 
 ## Additional Resources
-
 For more details, visit the [Sovereign SDK documentation](https://docs.sovereign.xyz).
