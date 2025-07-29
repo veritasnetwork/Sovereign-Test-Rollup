@@ -18,10 +18,11 @@ signer_addres = "celestia1a68m2l85zn5xh0l07clk4rfvnezhywc53g8x7s"
 path = "./test-data/rollup-starter-data-celestia"
 
 user_commit_concurrency = 6
-# This is enough for getting started, but production environment needs more
-user_hashtable_buckets = 50_000_000
+# The number of 4kb buckets to allocate for the state DB
+# The state DB will not exceed this size, and you'll get a warning when it fills up to 90% capacity.
+user_hashtable_buckets = 50_000_000 # 200 GB. You may need more for production deployments
 kernel_commit_concurrency = 2
-# Do it rarely for start
+# Run pruning once every 100_000 blocks. Prune any keys more than 100 versions old
 pruner_block_interval = 100_000
 pruner_versions_to_keep = 100
 
