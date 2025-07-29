@@ -8,9 +8,12 @@ publish = false
 
 [build-dependencies]
 risc0-build = { workspace = true }
+sov-zkvm-utils = { workspace = true }
 
 [package.metadata.risc0]
 methods = ["guest-celestia", "guest-mock"]
 
+
 [features]
 bench = []
+bincode = []

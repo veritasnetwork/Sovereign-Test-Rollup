@@ -1,12 +1,11 @@
 {
-  "CreateToken": {
-    "salt": 11,
+  "create_token": {
     "token_name": "sov-test-token",
-    "initial_balance": 1000,
-    "minter_address": "sov15vspj48hpttzyvxu8kzq5klhvaczcpyxn6z6k0hwpwtzs4a6wkvqwr57gc",
-    "authorized_minters": [
-      "sov1l6n2cku82yfqld30lanm2nfw43n2auc8clw7r5u5m6s7p8jrm4zqrr8r94",
-      "sov15vspj48hpttzyvxu8kzq5klhvaczcpyxn6z6k0hwpwtzs4a6wkvqwr57gc"
+    "initial_balance": "1000000",
+    "mint_to_address": "0x9b08ce57a93751aE790698A2C9ebc76A78F23E25",
+    "admins": [
+      "0xA6edfca3AA985Dd3CC728BFFB700933a986aC085",
+      "0x9b08ce57a93751aE790698A2C9ebc76A78F23E25"
     ]
   }
 }

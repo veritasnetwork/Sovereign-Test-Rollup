@@ -1,0 +1,24 @@
+{
+  "name": "sov-rollup-js-starter",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "scripts": {
+    "schema": "quicktype -s schema ../../crates/stf/.artifacts/json-schema.json -o src/types.ts --top-level RuntimeCall",
+    "start": "npm run schema && node --experimental-wasm-modules --loader ts-node/esm src/index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "type": "module",
+  "dependencies": {
+    "@sovereign-sdk/signers": "0.2.0",
+    "@sovereign-sdk/web3": "0.8.0",
+    "ethers": "^6.15.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "quicktype": "^23.2.6",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  }
+}

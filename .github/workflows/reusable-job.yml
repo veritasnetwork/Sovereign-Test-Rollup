@@ -1,0 +1,102 @@
+name: Reusable Job
+
+on:
+  workflow_call:
+    inputs:
+      job-name:
+        required: true
+        type: string
+      command:
+        required: true
+        type: string
+      setup-sp1:
+        required: false
+        type: boolean
+        default: false
+      setup-risc0:
+        required: false
+        type: boolean
+        default: false
+      setup-nextest:
+        required: false
+        type: boolean
+        default: false
+      setup-zepter:
+        required: false
+        type: boolean
+        default: false
+      env-vars:
+        required: false
+        type: string
+        default: ""
+    secrets:
+      SDK_WIP_ACCESS_TOKEN:
+        required: true
+
+jobs:
+  run:
+    name: ${{ inputs.job-name }}
+    runs-on:
+      - nscloud-ubuntu-22.04-amd64-8x32-with-cache
+      - nscloud-cache-tag-sov-rollup-starter-build
+      - nscloud-cache-size-100gb
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: |
+            ${{ secrets.SDK_WIP_ACCESS_TOKEN }}
+
+      - name: Install Protoc
+        uses: arduino/setup-protoc@v2
+        with:
+          version: "23.2"
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: namespacelabs/nscloud-cache-action@v1
+        with:
+          cache: rust
+
+      - name: Install zepter
+        if: ${{ inputs.setup-zepter }}
+        uses: taiki-e/install-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tool: zepter@1
+
+      - name: Install nextest
+        if: ${{ inputs.setup-nextest }}
+        uses: taiki-e/install-action@nextest
+
+      - name: Install Bashtestmd
+        uses: taiki-e/install-action@v2
+        env:
+          GITHUB_TOKEN: ${{ inputs.github_token }}
+        with:
+          tool: bashtestmd@0.5
+
+      - name: Install risc0-zkvm toolchain
+        if: ${{ inputs.setup-risc0 }}
+        shell: bash
+        run: make install-risc0-toolchain
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install SP1 toolchain
+        if: ${{ inputs.setup-sp1 }}
+        shell: bash
+        env:
+          SHELL: /bin/bash
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: make install-sp1-toolchain
+
+      - name: Run command
+        env:
+          SP1_PROVER: "mock"
+        run: ${{ inputs.env-vars }} ${{ inputs.command }}

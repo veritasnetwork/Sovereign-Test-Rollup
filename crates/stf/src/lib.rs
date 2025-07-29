@@ -1,16 +1,14 @@
 //! The rollup State Transition Function.
 
-#[cfg(feature = "native")]
-pub mod genesis_config;
-mod hooks;
+mod delegation;
 pub mod runtime;
+
 pub use runtime::*;
 use sov_modules_stf_blueprint::StfBlueprint;
-use sov_rollup_interface::da::DaVerifier;
-use sov_stf_runner::verifier::StateTransitionVerifier;
+use sov_rollup_interface::stf::StateTransitionVerifier;
+
+pub extern crate sov_modules_api;
 
 /// Alias for StateTransitionVerifier.
-pub type StfVerifier<DA, Vm, ZkContext, RT, K> =
-    StateTransitionVerifier<StfBlueprint<ZkContext, <DA as DaVerifier>::Spec, Vm, RT, K>, DA, Vm>;
-
-pub use sov_mock_da::MockDaSpec;
+pub type StfVerifier<DA, ZkSpec, RT, InnerVm, OuterVm> =
+    StateTransitionVerifier<StfBlueprint<ZkSpec, RT>, DA, InnerVm, OuterVm>;

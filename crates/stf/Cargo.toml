@@ -9,47 +9,56 @@ homepage = "sovereign.xyz"
 publish = false
 
 [dependencies]
-sov-modules-api = { workspace = true }
-sov-state = { workspace = true }
-sov-accounts = { workspace = true }
-sov-bank = { workspace = true }
-sov-sequencer-registry = { workspace = true }
-sov-mock-da = { workspace = true }
-sov-modules-stf-blueprint = { workspace = true }
-sov-stf-runner = { workspace = true }
-sov-sequencer = { workspace = true, optional = true }
+stf-starter-declaration = { workspace = true }
+
 sov-rollup-interface = { workspace = true }
-tracing = "0.1.37"
+sov-modules-api = { workspace = true }
+sov-modules-stf-blueprint = { workspace = true }
+sov-capabilities = { workspace = true }
+sov-kernels = { workspace = true }
+sov-rollup-apis = { workspace = true, optional = true }
+sov-sequencer-registry = { workspace = true }
+sov-paymaster = { workspace = true }
+sov-hyperlane-integration = { workspace = true }
+sov-bank = { workspace = true }
 
+[build-dependencies]
 anyhow = { workspace = true }
-serde = { workspace = true, features = ["derive", "rc"] }
-serde_json = { workspace = true, optional = true }
-jsonrpsee = { workspace = true, features = ["jsonrpsee-types"], optional = true }
-borsh = { workspace = true, features = ["rc", "bytes"] }
-clap = { workspace = true, features = ["derive"], optional = true }
-
-
-
+stf-starter-declaration = { workspace = true }
+sov-address = { workspace = true, features = ["evm"] }
+sov-modules-api = { workspace = true }
+sov-mock-zkvm = { workspace = true }
+sov-mock-da = { workspace = true, optional = true }
+sov-celestia-adapter = { workspace = true, optional = true }
+serde_json = { workspace = true }
+sov-universal-wallet = { workspace = true, features = ["serde"] }
+sov-build = { workspace = true }
 
 [features]
-default = ["serde"]
+default = []
+mock_da = ["sov-mock-da"]
+celestia_da = ["sov-celestia-adapter"]
 native = [
-    "sov-modules-api/native",
-    "sov-accounts/native",
-    "sov-bank/native",
-    "sov-sequencer-registry/native",
-    "sov-mock-da/native",
-    "sov-modules-stf-blueprint/native",
-    "sov-stf-runner/native",
-    "serde_json",
-    "jsonrpsee",
-    "sov-sequencer",
-    "clap",
-    "serde",
+  "stf-starter-declaration/native",
+  "sov-modules-api/native",
+  "sov-modules-stf-blueprint/native",
+  "sov-rollup-interface/native",
+  "sov-capabilities/native",
+  "sov-rollup-apis",
+  "sov-kernels/native",
+  "sov-paymaster/native",
+  "sov-hyperlane-integration/native",
+  "sov-sequencer-registry/native",
+  "sov-bank/native",
+  "sov-address/native",
+  "sov-mock-da?/native",
+  "sov-celestia-adapter?/native",
+  "sov-mock-zkvm/native",
 ]
-serde = [
-    "sov-accounts/serde",
-    "sov-bank/serde",
-    "sov-modules-api/serde",
-    "sov-sequencer-registry/serde",
+
+bench = [
+  "stf-starter-declaration/bench",
+  "sov-modules-api/bench",
+  "sov-modules-stf-blueprint/bench",
+  "sov-celestia-adapter?/bench",
 ]

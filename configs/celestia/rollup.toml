@@ -1,0 +1,58 @@
+[da]
+# The JWT used to authenticate with the celestia light client. Instructions for generating this token can be found in the README
+celestia_rpc_auth_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJBbGxvdyI6WyJwdWJsaWMiLCJyZWFkIiwid3JpdGUiLCJhZG1pbiJdLCJOb25jZSI6IkQvQ3lhdllBOFV1ZU5WU3RiRlRQWjJEMjNaSXptTHJLb2ZGYXhQTEZkZWc9IiwiRXhwaXJlc0F0IjoiMDAwMS0wMS0wMVQwMDowMDowMFoifQ.w6ZLekb8ngw6duK3mVW4D24iQudCHCJakg_GNNBmfvQ"
+# The address of the *trusted* Celestia light client to interact with
+celestia_rpc_address = "http://127.0.0.1:26658"
+# The largest response the rollup will accept from the Celestia node. Defaults to 100 MB
+max_celestia_response_body_size = 104_857_600
+# The maximum time to wait for a response to an RPC query against Celestia node. Defaults to 60 seconds.
+celestia_rpc_timeout_seconds = 60
+# This parameter is optinal
+# It will be pulled from node it connects to, but if it is pecified, it is going to verified.
+# This way we make sure node from docker container uses same address as specified in genesis
+signer_addres = "celestia1a68m2l85zn5xh0l07clk4rfvnezhywc53g8x7s"
+
+
+[storage]
+# The path to the rollup's data directory. Paths that do not begin with `/` are interpreted as relative paths.
+path = "./test-data/rollup-starter-data-celestia"
+
+# We define the rollup's genesis to occur at block number `start_height`. The rollup will ignore
+# any blocks before this height
+[runner]
+genesis_height = 3
+da_polling_interval_ms = 1000
+
+[runner.http_config]
+bind_host = "0.0.0.0"
+bind_port = 12346
+
+[monitoring]
+telegraf_address = "127.0.0.1:8094"
+# Defines how many measurements a rollup node will accumulate before sending it to the Telegraf.
+# It is expected from the rollup node to produce metrics all the time,
+# so measurements are buffered by size and not sent by time.
+# and below 67 KB, which is the maximal UDP packet size.
+# It also means that if a single serialized metric is larger than this value, a UDP packet will be larger.
+# The default value is 508.
+# max_datagram_size = 508
+# How many metrics are allowed to be in pending state, before new metrics will be dropped.
+# This is a number of metrics, not serialized bytes.
+# The total number of bytes to be held in memory might vary per metric + `max_datagram_size`
+# max_pending_metrics = 100
+
+[proof_manager]
+aggregated_proof_block_jump = 10
+prover_address = "0xA6edfca3AA985Dd3CC728BFFB700933a986aC085"
+max_number_of_transitions_in_db = 100
+max_number_of_transitions_in_memory = 30
+
+[sequencer]
+max_batch_size_bytes = 1048576
+max_concurrent_blobs = 128
+max_allowed_node_distance_behind = 10
+rollup_address = "0xA6edfca3AA985Dd3CC728BFFB700933a986aC085"
+blob_processing_timeout_secs = 60
+
+[sequencer.preferred]
+recovery_strategy = "TryToSave"

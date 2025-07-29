@@ -1,0 +1,34 @@
+# Same as ./rollup.toml, but all file path/s are changed.
+[da]
+connection_string = "sqlite:///mnt/da/mock_da.sqlite?mode=rwc"
+sender_address = "0000000000000000000000000000000000000000000000000000000000000000"
+[da.block_producing.periodic]
+block_time_ms = 3_000
+
+[storage]
+path = "/mnt/state"
+
+[runner]
+genesis_height = 0
+da_polling_interval_ms = 1000
+
+[runner.http_config]
+bind_host = "0.0.0.0"
+bind_port = 12346
+
+[monitoring]
+# This does not have effect at the moment.
+telegraf_address = "127.0.0.1:8094"
+
+
+[proof_manager]
+aggregated_proof_block_jump = 1
+prover_address = "0xA6edfca3AA985Dd3CC728BFFB700933a986aC085"
+max_number_of_transitions_in_db = 100
+max_number_of_transitions_in_memory = 20
+
+[sequencer]
+max_allowed_node_distance_behind = 10
+rollup_address = "0xA6edfca3AA985Dd3CC728BFFB700933a986aC085"
+blob_processing_timeout_secs = 60
+[sequencer.preferred]
