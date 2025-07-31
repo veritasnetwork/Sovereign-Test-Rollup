@@ -40,7 +40,7 @@ jobs:
       # Privileged feature is needed for proper `io_uring` functionality needed by NOMT
       - nscloud-exp-features:privileged;host-pid-namespace
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: actions/setup-node@v4
         with:
@@ -71,7 +71,7 @@ jobs:
       - name: Install Bashtestmd
         uses: taiki-e/install-action@v2
         env:
-          GITHUB_TOKEN: ${{ inputs.github_token }}
+          GITHUB_TOKEN: ${{ secrets.github_token }}
         with:
           tool: bashtestmd@0.5
 
