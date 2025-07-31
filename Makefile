@@ -77,9 +77,7 @@ run-docker-mock-da: ## Start docker container with MockDa
 	@if [ "$(BACKGROUND)" = "true" ]; then \
 		docker run -d \
 			--name rollup-mock-da \
-			--cap-add SYS_NICE \
-			--cap-add IPC_LOCK \
-			--ulimit memlock=-1:-1 \
+			--privileged \
 			-v $(CURDIR)/test-data/docker/da:/mnt/da \
 			-v $(CURDIR)/test-data/docker/state:/mnt/state \
 			-v $(CURDIR)/configs/mock/rollup-dockerized.toml:/app/config/rollup.toml \
@@ -87,9 +85,7 @@ run-docker-mock-da: ## Start docker container with MockDa
 			rollup-starter:debug; \
 	else \
 		docker run -it \
-			--cap-add SYS_NICE \
-			--cap-add IPC_LOCK \
-			--ulimit memlock=-1:-1 \
+			--privileged \
 			-v $(CURDIR)/test-data/docker/da:/mnt/da \
 			-v $(CURDIR)/test-data/docker/state:/mnt/state \
 			-v $(CURDIR)/configs/mock/rollup-dockerized.toml:/app/config/rollup.toml \
