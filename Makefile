@@ -1,4 +1,4 @@
-.PHONY: help check lint install-risc0-toolchain install-sp1-toolchain clean clean-db build-docker-mock-da run-docker-mock-da start-obs stop-obs start-celestia stop-celestia
+.PHONY: help check lint install-risc0-toolchain install-sp1-toolchain clean clean-db build-docker-mock-da run-docker-mock-da stop-docker-mock-da start-obs stop-obs start-celestia stop-celestia
 
 # Should remain at the top, otherwise `make` won't print help
 help: ## Display this help message
@@ -75,12 +75,26 @@ run-docker-mock-da: ## Start docker container with MockDa
 	mkdir -p test-data/docker
 	mkdir -p test-data/docker/da
 	mkdir -p test-data/docker/state
-	docker run --rm -it \
+	@if [ "$(BACKGROUND)" = "true" ]; then \
+		docker run --rm -d \
+			--name rollup-mock-da \
 			-v $(CURDIR)/test-data/docker/da:/mnt/da \
 			-v $(CURDIR)/test-data/docker/state:/mnt/state \
 			-v $(CURDIR)/configs/mock/rollup-dockerized.toml:/app/config/rollup.toml \
 			-p 12346:12346 \
-			rollup-starter:debug
+			rollup-starter:debug; \
+	else \
+		docker run --rm -it \
+			-v $(CURDIR)/test-data/docker/da:/mnt/da \
+			-v $(CURDIR)/test-data/docker/state:/mnt/state \
+			-v $(CURDIR)/configs/mock/rollup-dockerized.toml:/app/config/rollup.toml \
+			-p 12346:12346 \
+			rollup-starter:debug; \
+	fi
+
+stop-docker-mock-da: ## Stop docker container with MockDa
+	@docker stop rollup-mock-da 2>/dev/null || true
+	@docker rm rollup-mock-da 2>/dev/null || true
 
 start-obs:  ## Start observability stack
 	./scripts/start_observability.sh
