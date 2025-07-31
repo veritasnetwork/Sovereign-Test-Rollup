@@ -75,7 +75,7 @@ run-docker-mock-da: ## Start docker container with MockDa
 	mkdir -p test-data/docker/da
 	mkdir -p test-data/docker/state
 	@if [ "$(BACKGROUND)" = "true" ]; then \
-		docker run --rm -d \
+		docker run -d \
 			--name rollup-mock-da \
 			-v $(CURDIR)/test-data/docker/da:/mnt/da \
 			-v $(CURDIR)/test-data/docker/state:/mnt/state \
@@ -83,7 +83,7 @@ run-docker-mock-da: ## Start docker container with MockDa
 			-p 12346:12346 \
 			rollup-starter:debug; \
 	else \
-		docker run --rm -it \
+		docker run \
 			-v $(CURDIR)/test-data/docker/da:/mnt/da \
 			-v $(CURDIR)/test-data/docker/state:/mnt/state \
 			-v $(CURDIR)/configs/mock/rollup-dockerized.toml:/app/config/rollup.toml \
