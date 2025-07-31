@@ -6,6 +6,11 @@ on:
     branches: ["main"]
   pull_request:
     branches: ["main"]
+  # Relevant docs:
+  # - https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/configuring-pull-request-merges/managing-a-merge-queue#how-merge-queues-work
+  # - https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#merge_group
+  merge_group:
+    types: ["checks_requested"]
 
 env:
   CARGO_TERM_COLOR: always
