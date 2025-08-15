@@ -4,7 +4,8 @@
   "main": "index.ts",
   "scripts": {
     "schema": "quicktype -s schema ../../crates/stf/.artifacts/json-schema.json -o src/types.ts --top-level RuntimeCall",
-    "start": "npm run schema && node --experimental-wasm-modules --loader ts-node/esm src/index.ts"
+    "start": "npm run schema && node --experimental-wasm-modules --loader ts-node/esm src/index.ts",
+    "simulate": "npx ts-node src/veritas-simulation.ts"
   },
   "author": "",
   "license": "ISC",

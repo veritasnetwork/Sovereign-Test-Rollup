@@ -109,31 +109,31 @@
       {
         "id": 1,
         "question": "Will ETH exceed $5000 by Dec 2024?",
-        "aggregate": 0.5,
+        "aggregate": 5000,
         "total_weight": 0
       },
       {
         "id": 2,
         "question": "Will Bitcoin hit $100,000 in 2024?",
-        "aggregate": 0.4,
+        "aggregate": 4000,
         "total_weight": 0
       },
       {
         "id": 3,
         "question": "Will there be a US Fed rate cut in Q1 2025?",
-        "aggregate": 0.6,
+        "aggregate": 6000,
         "total_weight": 0
       },
       {
         "id": 4,
         "question": "Will AI regulation pass in EU by mid-2025?",
-        "aggregate": 0.7,
+        "aggregate": 7000,
         "total_weight": 0
       },
       {
         "id": 5,
         "question": "Will SpaceX complete Mars mission by 2030?",
-        "aggregate": 0.3,
+        "aggregate": 3000,
         "total_weight": 0
       }
     ]

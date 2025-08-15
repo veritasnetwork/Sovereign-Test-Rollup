@@ -57,13 +57,13 @@ class VeritasSimulation {
   private totalSubmissions: number = 0;
   
   constructor() {
-    // Initialize with known beliefs from genesis
+    // Initialize with known beliefs from genesis (using fixed-point scale of 10000)
     const genesisBeliefs = [
-      { id: 1, question: "Will ETH exceed $5000 by Dec 2024?", aggregate: 0.5, totalWeight: 0 },
-      { id: 2, question: "Will Bitcoin hit $100,000 in 2024?", aggregate: 0.4, totalWeight: 0 },
-      { id: 3, question: "Will there be a US Fed rate cut in Q1 2025?", aggregate: 0.6, totalWeight: 0 },
-      { id: 4, question: "Will AI regulation pass in EU by mid-2025?", aggregate: 0.7, totalWeight: 0 },
-      { id: 5, question: "Will SpaceX complete Mars mission by 2030?", aggregate: 0.3, totalWeight: 0 }
+      { id: 1, question: "Will ETH exceed $5000 by Dec 2024?", aggregate: 5000, totalWeight: 0 },
+      { id: 2, question: "Will Bitcoin hit $100,000 in 2024?", aggregate: 4000, totalWeight: 0 },
+      { id: 3, question: "Will there be a US Fed rate cut in Q1 2025?", aggregate: 6000, totalWeight: 0 },
+      { id: 4, question: "Will AI regulation pass in EU by mid-2025?", aggregate: 7000, totalWeight: 0 },
+      { id: 5, question: "Will SpaceX complete Mars mission by 2030?", aggregate: 3000, totalWeight: 0 }
     ];
     
     genesisBeliefs.forEach(b => this.beliefs.set(b.id, b));
@@ -165,9 +165,10 @@ class VeritasSimulation {
           
           if (belief) {
             // Generate submission value based on current aggregate with some variance
-            const variance = 0.3;
-            const baseValue = belief.aggregate + (Math.random() - 0.5) * variance;
-            const value = Math.max(0, Math.min(100, Math.round(baseValue * 100)));
+            // Using fixed-point scale (10000 = 100%)
+            const variance = 3000; // 30% variance
+            const baseValue = belief.aggregate + Math.floor((Math.random() - 0.5) * variance);
+            const value = Math.max(0, Math.min(10000, baseValue));
             
             try {
               const call: RuntimeCall = {
@@ -182,10 +183,12 @@ class VeritasSimulation {
               
               // Update local belief aggregate (approximation)
               const weight = agent.stake * 100; // score starts at 100
+              const oldWeight = belief.totalWeight;
               belief.totalWeight += weight;
-              belief.aggregate = (belief.aggregate * (belief.totalWeight - weight) + (value/100) * weight) / belief.totalWeight;
+              // Fixed-point weighted average
+              belief.aggregate = Math.floor((belief.aggregate * oldWeight + value * weight) / belief.totalWeight);
               
-              console.log(`  ${colors.green}✅ ${agent.address.slice(0, 10)}... → Belief #${beliefId}: ${value}%${colors.reset}`);
+              console.log(`  ${colors.green}✅ ${agent.address.slice(0, 10)}... → Belief #${beliefId}: ${(value/100).toFixed(2)}%${colors.reset}`);
             } catch (error) {
               console.log(`  ${colors.red}❌ Submission failed${colors.reset}`);
             }
@@ -208,8 +211,9 @@ class VeritasSimulation {
     
     console.log(`\n${colors.cyan}📊 BELIEF AGGREGATES:${colors.reset}`);
     this.beliefs.forEach(belief => {
-      const pct = (belief.aggregate * 100).toFixed(1);
-      const bar = this.createProgressBar(belief.aggregate);
+      const pct = (belief.aggregate / 100).toFixed(2); // Convert from scale 10000 to percentage
+      const normalizedValue = belief.aggregate / 10000; // Normalize for progress bar
+      const bar = this.createProgressBar(normalizedValue);
       console.log(`  #${belief.id}: ${bar} ${pct}%`);
     });
   }
@@ -264,7 +268,7 @@ class VeritasSimulation {
     
     console.log(`\n${colors.cyan}${colors.bright}📊 FINAL BELIEF STATES${colors.reset}`);
     this.beliefs.forEach(belief => {
-      console.log(`  Belief #${belief.id}: ${(belief.aggregate * 100).toFixed(2)}%`);
+      console.log(`  Belief #${belief.id}: ${(belief.aggregate / 100).toFixed(2)}%`);
       console.log(`    "${belief.question}"`);
     });
     

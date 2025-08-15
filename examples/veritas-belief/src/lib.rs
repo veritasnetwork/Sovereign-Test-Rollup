@@ -1,11 +1,28 @@
 //! BeliefModule - Manages prediction markets/beliefs in the Veritas system
-//! 
+//!
+//! FILE PURPOSE:
+//! This is the second of three core modules implementing Veritas.
+//! It manages the prediction markets (beliefs) that agents submit predictions to.
+//!
+//! ARCHITECTURE ROLE:
+//! - Stores the questions and current consensus values
+//! - Implements the weighted average aggregation formula
+//! - Called by SubmissionModule to update aggregates
+//! - Does NOT expose public transactions (internal use only)
+//!
+//! CHANGES MADE:
+//! - Created from scratch following spec
+//! - Implements weighted average: new = (old × old_weight + new × new_weight) / total
+//! - Genesis loads initial beliefs from config
+//! - CallMessage only has NoOp (update_aggregate is internal)
+//! - REFACTORED: Using u64 fixed-point math (scale 10000) instead of f64 for determinism
+//!
 //! This module handles:
 //! - Storage of beliefs (questions about future events)
 //! - Tracking aggregate consensus values
 //! - Weighted average calculations for belief updates
 //! - Submission counting
-//! 
+//!
 //! Each belief represents a prediction market where agents submit
 //! their probability estimates (0.0 to 1.0) for an event occurring
 
@@ -23,6 +40,12 @@ use std::marker::PhantomData;
 /// Using u64 allows for up to 18 quintillion unique beliefs
 pub type BeliefId = u64;
 
+/// Fixed-point scale for probability values
+/// We use 10000 to represent 1.0 (100% probability)
+/// This gives us 4 decimal places of precision
+/// Examples: 5000 = 0.5000, 7525 = 0.7525, 10000 = 1.0000
+pub const SCALE: u64 = 10000;
+
 /// Belief represents a prediction market/question
 /// Agents submit probability estimates which are aggregated into consensus
 #[derive(Clone, Debug, borsh::BorshSerialize, borsh::BorshDeserialize, serde::Serialize, serde::Deserialize, JsonSchema)]
@@ -33,9 +56,10 @@ pub struct Belief {
     /// The question being predicted (e.g., "Will ETH exceed $5000 by Dec 2024?")
     pub question: String,
     
-    /// Current weighted average of all submissions (0.0 to 1.0)
+    /// Current weighted average of all submissions (0 to 10000)
     /// This represents the collective probability estimate
-    pub aggregate: f64,
+    /// 10000 = 100% probability, 5000 = 50%, 0 = 0%
+    pub aggregate: u64,
     
     /// Sum of all weights that have contributed to this belief
     /// Used in weighted average calculations
@@ -46,7 +70,7 @@ pub struct Belief {
 pub struct BeliefState {
     pub id: BeliefId,
     pub question: String,
-    pub aggregate: f64,
+    pub aggregate: u64,  // Fixed-point: 0-10000 representing 0.0-1.0
     pub total_weight: u64,
     pub submission_count: u64,
 }
@@ -134,18 +158,18 @@ impl<S: Spec> BeliefModule<S> {
     /// 
     /// Parameters:
     /// - question: The event to predict
-    /// - initial_value: Starting probability (0.0 to 1.0)
+    /// - initial_value: Starting probability (0 to 10000, representing 0.0 to 1.0)
     /// 
     /// Returns: The ID of the newly created belief
     pub fn create_belief(
         &mut self,
         question: String,
-        initial_value: f64,
+        initial_value: u64,
         state: &mut impl TxState<S>,
     ) -> Result<BeliefId> {
         // Validate probability is in valid range
-        if initial_value < 0.0 || initial_value > 1.0 {
-            bail!("Initial value must be between 0.0 and 1.0");
+        if initial_value > SCALE {
+            bail!("Initial value must be between 0 and {}", SCALE);
         }
 
         if question.is_empty() {
@@ -183,19 +207,19 @@ impl<S: Spec> BeliefModule<S> {
     /// 
     /// Parameters:
     /// - belief_id: Which belief to update
-    /// - value: The probability estimate (0.0 to 1.0)
+    /// - value: The probability estimate (0 to 10000, representing 0.0 to 1.0)
     /// - weight: The agent's weight (stake × score)
     /// 
     /// Returns: The new aggregate value after update
     pub fn update_aggregate(
         &mut self,
         belief_id: BeliefId,
-        value: f64,
+        value: u64,
         weight: u64,
         state: &mut impl TxState<S>,
-    ) -> Result<f64> {
-        if value < 0.0 || value > 1.0 {
-            bail!("Value must be between 0.0 and 1.0");
+    ) -> Result<u64> {
+        if value > SCALE {
+            bail!("Value must be between 0 and {}", SCALE);
         }
 
         // Fetch the belief, error if it doesn't exist
@@ -205,12 +229,19 @@ impl<S: Spec> BeliefModule<S> {
         // WEIGHTED AVERAGE CALCULATION:
         // This is the heart of the consensus mechanism
         // Agents with higher weight (stake × score) have more influence
-        let old_total_weight = belief.total_weight as f64;
-        let new_total_weight = old_total_weight + weight as f64;
+        // Using integer math to ensure determinism across all nodes
+        let old_total_weight = belief.total_weight;
+        let new_total_weight = old_total_weight.saturating_add(weight);
         
-        if new_total_weight > 0.0 {
-            // Standard weighted average formula
-            belief.aggregate = (belief.aggregate * old_total_weight + value * weight as f64) / new_total_weight;
+        if new_total_weight > 0 {
+            // Fixed-point weighted average formula
+            // We use u128 for intermediate calculations to prevent overflow
+            let old_contribution = (belief.aggregate as u128) * (old_total_weight as u128);
+            let new_contribution = (value as u128) * (weight as u128);
+            let total_contribution = old_contribution + new_contribution;
+            
+            // Divide and convert back to u64
+            belief.aggregate = (total_contribution / (new_total_weight as u128)) as u64;
         } else {
             // Edge case: first submission
             belief.aggregate = value;

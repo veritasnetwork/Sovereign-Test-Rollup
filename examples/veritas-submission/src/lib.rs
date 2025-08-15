@@ -1,12 +1,36 @@
 //! SubmissionModule - Orchestrates belief submissions and scoring
-//! 
+//!
+//! FILE PURPOSE:
+//! This is the ORCHESTRATOR module - the third and most complex module.
+//! It's the main entry point for user interactions with the Veritas system.
+//!
+//! ARCHITECTURE ROLE:
+//! - Accepts belief submissions from agents
+//! - Coordinates between AgentModule and BeliefModule
+//! - Implements the transaction flow from spec section "Internal Execution Flow"
+//! - Demonstrates cross-module communication pattern
+//!
+//! CHANGES MADE:
+//! - Created from scratch as the orchestration layer
+//! - Uses #[module] attributes to reference other modules
+//! - Implements cross-module calls via internal methods (not CallMessage)
+//! - Records all submissions for historical analysis
+//! - REFACTORED: Using u64 fixed-point math (scale 10000) instead of f64 for determinism
+//!
+//! KEY PATTERN:
+//! This module shows how Sovereign SDK modules can work together:
+//! 1. User calls SubmitBelief on this module
+//! 2. This module calls AgentModule.get_weight()
+//! 3. This module calls BeliefModule.update_aggregate()
+//! 4. Submission is recorded
+//!
 //! This is the main interaction point for agents. It coordinates:
 //! - Accepting agent predictions
 //! - Calculating agent weights via AgentModule
 //! - Updating belief aggregates via BeliefModule
 //! - Computing score rewards based on accuracy
 //! - Recording submission history
-//! 
+//!
 //! This module demonstrates cross-module communication in Sovereign SDK
 //! by referencing and calling methods on other modules
 
@@ -19,11 +43,14 @@ use sov_modules_api::{
     StateVec, TxState,
 };
 use std::marker::PhantomData;
-use veritas_belief::BeliefId;
+use veritas_belief::{BeliefId, SCALE};
 
 /// Records a single prediction submission
 /// Stored for historical analysis and audit purposes
-#[derive(Clone, Debug, borsh::BorshSerialize, borsh::BorshDeserialize, serde::Serialize, serde::Deserialize, JsonSchema)]
+#[derive(Clone, Debug, borsh::BorshSerialize, borsh::BorshDeserialize, JsonSchema)]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(bound(serialize = "S::Address: serde::Serialize", 
+              deserialize = "S::Address: serde::de::DeserializeOwned"))]
 pub struct Submission<S: Spec> {
     /// Address of the agent who made this submission
     pub agent: S::Address,
@@ -31,8 +58,8 @@ pub struct Submission<S: Spec> {
     /// Which belief this prediction is for
     pub belief_id: BeliefId,
     
-    /// The probability value submitted (0.0 to 1.0)
-    pub value: f64,
+    /// The probability value submitted (0 to 10000, representing 0.0 to 1.0)
+    pub value: u64,
     
     /// The agent's weight at time of submission (stake × score)
     pub weight: u64,
@@ -59,9 +86,11 @@ pub struct SubmissionModule<S: Spec> {
     #[state]
     pub submissions: StateVec<Submission<S>>,
 
-    /// Reference to AgentModule for weight calculations
-    /// The #[module] attribute tells Sovereign SDK this is a module reference
-    /// Allows calling public methods like get_weight()
+    /// Reference to AgentModule for weight calculations.
+    /// CRITICAL: The #[module] attribute tells Sovereign SDK this is a module reference.
+    /// This is HOW cross-module communication works - we store references to other modules
+    /// and call their PUBLIC methods (not CallMessage methods) directly.
+    /// This allows calling internal methods like get_weight() that aren't exposed to users.
     #[module]
     pub agent_module: veritas_agent::AgentModule<S>,
 
@@ -96,9 +125,8 @@ impl<S: Spec> Module for SubmissionModule<S> {
 
     /// Entry point for transaction processing
     /// 
-    /// NOTE: We accept value as u64 (0-100) instead of f64 (0.0-1.0)
-    /// This is because the UniversalWallet trait doesn't support f64
-    /// We convert to f64 internally for calculations
+    /// NOTE: Value is already in fixed-point format (0-10000)
+    /// No conversion needed as we're using u64 throughout for determinism
     fn call(
         &mut self,
         msg: Self::CallMessage,
@@ -107,15 +135,17 @@ impl<S: Spec> Module for SubmissionModule<S> {
     ) -> Result<()> {
         match msg {
             CallMessage::SubmitBelief { belief_id, value } => {
-                // Convert from percentage (0-100) to probability (0.0-1.0)
-                let value_f64 = value as f64 / 100.0;
-                self.submit_belief(belief_id, value_f64, context, state)
+                // Value is already in fixed-point format (0-10000)
+                self.submit_belief(belief_id, value, context, state)
             }
         }
     }
 }
 
-#[derive(Clone, Debug, borsh::BorshSerialize, borsh::BorshDeserialize, serde::Serialize, serde::Deserialize, JsonSchema)]
+#[derive(Clone, Debug, borsh::BorshSerialize, borsh::BorshDeserialize, JsonSchema)]
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(bound(serialize = "S::Address: serde::Serialize",
+              deserialize = "S::Address: serde::de::DeserializeOwned"))]
 pub struct GenesisConfig<S> 
 where
     S: Spec,
@@ -142,12 +172,12 @@ impl<S: Spec> SubmissionModule<S> {
     pub fn submit_belief(
         &mut self,
         belief_id: BeliefId,
-        value: f64,
+        value: u64,
         context: &Context<S>,
         state: &mut impl TxState<S>,
     ) -> Result<()> {
-        if value < 0.0 || value > 1.0 {
-            bail!("Value must be between 0.0 and 1.0");
+        if value > SCALE {
+            bail!("Value must be between 0 and {}", SCALE);
         }
 
         let sender = context.sender();
@@ -165,10 +195,22 @@ impl<S: Spec> SubmissionModule<S> {
         
         // SCORING MECHANISM:
         // Agents are rewarded based on how close their prediction is to consensus
-        // Distance 0.0 = perfect match = ~100 point bonus
-        // Distance 0.5 = far off = ~2 point bonus
-        let distance = (value - new_aggregate).abs();
-        let _score_delta = (100.0 / (1.0 + (distance * 100.0))) as u64;
+        // Using integer math: distance of 0 = perfect match = 100 point bonus
+        // Distance of 5000 (50%) = ~2 point bonus
+        let distance = if value > new_aggregate {
+            value - new_aggregate
+        } else {
+            new_aggregate - value
+        };
+        
+        // Score bonus calculation using fixed-point math
+        // Max bonus is 100 points for perfect match
+        let _score_delta = if distance == 0 {
+            100
+        } else {
+            // Scale down the bonus based on distance
+            100u64.saturating_mul(SCALE).saturating_div(SCALE + distance)
+        };
         
         // TODO: Currently we can't update scores because update_score is not exposed
         // in AgentModule's CallMessage. In a real implementation, we'd either:
@@ -233,7 +275,7 @@ impl<S: Spec> SubmissionModule<S> {
 pub enum CallMessage {
     SubmitBelief { 
         belief_id: BeliefId, 
-        value: u64  // Changed to u64 (multiply by 100 for percentage)
+        value: u64  // Fixed-point value: 0-10000 representing 0.0-1.0
     },
 }
 

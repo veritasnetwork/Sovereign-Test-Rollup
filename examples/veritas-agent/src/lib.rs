@@ -1,11 +1,26 @@
 //! AgentModule - Manages participants in the Veritas belief aggregation system
-//! 
+//!
+//! FILE PURPOSE:
+//! This is one of three core modules implementing the Veritas protocol.
+//! It manages the participants (agents) who submit predictions to belief markets.
+//!
+//! ARCHITECTURE ROLE:
+//! - First module in the flow: agents must register here before participating
+//! - Provides weight calculation used by SubmissionModule
+//! - Stores reputation scores that should increase with accuracy
+//!
+//! CHANGES MADE:
+//! - Created from scratch following spec in /specs/veritas-test-architecture.md
+//! - Implements Module trait for Sovereign SDK integration
+//! - Uses StateMap for persistent storage of agents
+//! - Exposes register/stake management via CallMessage
+//!
 //! This module handles:
 //! - Agent registration with initial stake
 //! - Stake management (add/withdraw)
 //! - Reputation score tracking
 //! - Weight calculation (stake × score)
-//! 
+//!
 //! Each agent has:
 //! - stake: Amount of tokens locked (influences voting power)
 //! - score: Reputation score (starts at 100, increases with accurate predictions)
@@ -57,7 +72,11 @@ pub struct AgentModule<S: Spec> {
 }
 
 /// Module trait implementation defines how this module integrates with Sovereign SDK
-/// This is the core interface that the runtime uses to interact with our module
+/// This is the REQUIRED interface that the runtime uses to interact with our module.
+/// Without this trait implementation, the module cannot be added to the Runtime.
+/// The Sovereign SDK will call these methods at appropriate times:
+/// - genesis() when the blockchain starts for the first time
+/// - call() when a user submits a transaction to this module
 impl<S: Spec> Module for AgentModule<S> {
     /// The blockchain specification (includes address type, crypto, etc.)
     type Spec = S;
