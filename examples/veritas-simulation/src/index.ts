@@ -13,6 +13,7 @@ import { createStandardRollup } from "@sovereign-sdk/web3";
 import { Secp256k1Signer } from "@sovereign-sdk/signers";
 import { computeAddress } from "ethers";
 import { RuntimeCall } from "./types";
+import { BeliefStats, SimulationStats } from "./local-types";
 
 class VeritasSimulation {
   private rollupClient: any;
@@ -45,7 +46,8 @@ class VeritasSimulation {
       this.rollupClient = await createStandardRollup({url: config.rollupUrl});
       
       // Check if rollup is running
-      const isHealthy = await this.rollupClient.healthCheck();
+      const isHealthy = await this.rollupClient.healthcheck(30);
+      // TODO: print chainHash() as hex
       if (!isHealthy) {
         throw new Error('Rollup is not responding. Make sure it is running.');
       }

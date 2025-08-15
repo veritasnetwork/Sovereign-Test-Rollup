@@ -5,7 +5,8 @@
 import { Wallet, randomBytes } from 'ethers';
 import { Secp256k1Signer } from '@sovereign-sdk/signers';
 import { config } from './config.js';
-import { Agent, RuntimeCall, TransactionResponse } from './types.js';
+import { RuntimeCall } from "./types";
+import { Agent } from "./agents-simple";
 
 export class AgentManager {
   private agents: Map<string, Agent> = new Map();

@@ -4,8 +4,9 @@
 
 import chalk from 'chalk';
 import { config } from './config.js';
-import { VeritasTransactions } from './simple-client.js';
-import { Agent } from './agents-simple.js';
+import { Agent } from './local-types';
+import { RuntimeCall } from './types';
+import { Secp256k1Signer } from '@sovereign-sdk/signers';
 
 export interface Belief {
   id: number;
@@ -46,8 +47,16 @@ export class SimpleBeliefManager {
    */
   async submitBelief(agent: Agent, beliefId: number, value: number): Promise<boolean> {
     try {
-      const tx = VeritasTransactions.submitBelief(agent.address, beliefId, value);
-      await this.rollupClient.submitTransaction(tx);
+      const signer = new Secp256k1Signer(agent.privateKey);
+      const callMessage: RuntimeCall = {
+        veritas_submission: {
+          submit_belief: {
+            belief_id: beliefId,
+            value: Math.round(value * 100) // Convert 0.0-1.0 to 0-100
+          }
+        }
+      };
+      await this.rollupClient.call(callMessage, { signer });
       
       // Update local belief aggregate (approximation)
       const belief = this.beliefs.get(beliefId);
@@ -73,12 +82,12 @@ export class SimpleBeliefManager {
    */
   async queryBelief(beliefId: number): Promise<Belief | null> {
     try {
-      const result = await this.rollupClient.queryState('veritas-belief', `beliefs/${beliefId}`);
+      const result = await this.rollupClient.modules.veritas_belief.beliefs.get(beliefId);
       if (result) {
         return {
           id: beliefId,
           question: result.question || '',
-          aggregate: result.aggregate || 0,
+          aggregate: (result.aggregate || 0) / 100, // Convert from 0-100 to 0.0-1.0
           totalWeight: result.total_weight || 0
         };
       }

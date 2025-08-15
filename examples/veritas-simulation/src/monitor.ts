@@ -4,7 +4,8 @@
 
 import chalk from 'chalk';
 import Table from 'cli-table3';
-import { SimulationStats, BeliefStats, Agent } from './types.js';
+import { Agent} from "./agents-simple";
+import {SimulationStats, BeliefStats} from "./local-types";
 
 export class Monitor {
   private recentActivity: string[] = [];

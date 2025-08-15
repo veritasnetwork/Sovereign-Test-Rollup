@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "type": "module",
   "scripts": {
-    "simulate": "node --experimental-wasm-modules --loader ts-node/esm src/index.ts",
+    "simulate": "npm run schema && node --experimental-wasm-modules --loader ts-node/esm src/index.ts",
     "monitor": "node --experimental-wasm-modules --loader ts-node/esm src/monitor.ts",
     "clean": "rm -rf dist node_modules",
     "schema": "quicktype -s schema ../../crates/stf/.artifacts/json-schema.json -o src/types.ts --top-level RuntimeCall"
