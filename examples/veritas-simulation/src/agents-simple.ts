@@ -39,7 +39,28 @@ export class SimpleAgentManager {
       submissions: 0
     };
 
-    // Try to register the agent
+    // Check if agent is already registered
+    try {
+      // Access the rollup instance directly for queries
+      const rollup = this.rollupClient;
+      // my_module_values_get_state_map_element
+      const existingAgent = await rollup.ro(agent.address);
+      if (existingAgent) {
+        console.log(chalk.yellow(`Agent ${agent.address} already registered, skipping registration`));
+        agent.stake = existingAgent.stake;
+        agent.score = existingAgent.score;
+        this.agents.set(agent.address, agent);
+        return;
+      }
+    } catch (error: any) {
+      // Agent doesn't exist, proceed with registration
+      console.log(chalk.gray(`Agent ${agent.address} not found on-chain, proceeding with registration`));
+      if (error.message) {
+        console.log(chalk.gray(`Query check: ${error.message}`));
+      }
+    }
+
+    // Register the agent if not already registered
     try {
       const signer = new Secp256k1Signer(privateKey);
       const callMessage: RuntimeCall = {
@@ -52,11 +73,10 @@ export class SimpleAgentManager {
       await this.rollupClient.call(callMessage, { signer });
 
       this.agents.set(agent.address, agent);
-      console.log(chalk.green(`✅ Registered funded agent ${agent.address}...`));
+      console.log(chalk.green(`✅ Registered funded agent ${agent.address}`));
     } catch (error: any) {
-      // Agent might already be registered
-      console.log(chalk.yellow(`Agent ${agent.address.slice(0, 8)}... may already be registered`));
-      this.agents.set(agent.address, agent);
+      console.log(chalk.red(`❌ Failed to register agent ${agent.address}`));
+      console.log(chalk.red(`Error: ${error}`));
     }
   }
 
@@ -98,9 +118,19 @@ export class SimpleAgentManager {
 
         this.agents.set(agent.address, agent);
         newAgents.push(agent);
-        console.log(chalk.green(`✅ Registered agent ${agent.address.slice(0, 8)}...`));
-      } catch (error) {
-        console.log(chalk.red(`❌ Failed to register agent ${agent.address.slice(0, 8)}...`));
+        console.log(chalk.green(`✅ Registered agent ${agent.address}`));
+      } catch (error: any) {
+        console.log(chalk.red(`❌ Failed to register agent ${agent.address}`));
+        console.log(chalk.red(`Error: ${error.message || error}`));
+        
+        // Print full error details
+        if (error.response?.data) {
+          console.log(chalk.red(`Response: ${JSON.stringify(error.response.data, null, 2)}`));
+        } else if (error.cause) {
+          console.log(chalk.red(`Cause: ${JSON.stringify(error.cause, null, 2)}`));
+        } else {
+          console.log(chalk.red(`Full error: ${JSON.stringify(error, Object.getOwnPropertyNames(error), 2)}`));
+        }
       }
     }
 
