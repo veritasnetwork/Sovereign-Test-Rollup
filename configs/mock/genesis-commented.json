@@ -1,0 +1,136 @@
+{
+  // ===== STANDARD MODULES CONFIGURATION =====
+  "accounts": {
+    "accounts": []  // Initial account balances (empty for mock)
+  },
+  
+  "operator_incentives": {
+    "reward_address": "0xA6edfca3AA985Dd3CC728BFFB700933a986aC085"
+  },
+  
+  "attester_incentives": {
+    "minimum_attester_bond": [1000, 1000],
+    "minimum_challenger_bond": [1000, 1000],
+    "initial_attesters": [
+      ["0xA6edfca3AA985Dd3CC728BFFB700933a986aC085", "200000"]
+    ],
+    "rollup_finality_period": 5,
+    "maximum_attested_height": 0,
+    "light_client_finalized_height": 0
+  },
+  
+  "bank": {
+    // Gas token configuration - this is the main token used for fees
+    "gas_token_config": {
+      "token_name": "sov-token",
+      "address_and_balances": [
+        // These addresses get initial token balances
+        // Format: [address, amount]
+        ["0xA6edfca3AA985Dd3CC728BFFB700933a986aC085", "10000000000000000"],
+        ["0x23B6445f524daDee9fb576627740AaD23Afbe8b7", "1000000000"],
+        ["0x9b08ce57a93751aE790698A2C9ebc76A78F23E25", "1000000000"],
+        ["0xB14D211d69aff5190451b336bDe0975b57555D36", "1000000000"],
+        ["0xe78B5e6d2BfF36b462cc29772526Dd4EBF42E98b", "1000000000"],
+        ["0x0E0BcFa6A9D9C5694B754Aa3BF86360EE23eb52B", "1000000000"],
+        ["0x267d5F5Ba12AcD07Ce5D0831B17aB5927fEBCd48", "1000000000"]
+      ],
+      "admins": ["0xA6edfca3AA985Dd3CC728BFFB700933a986aC085"]
+    },
+    "tokens": []  // Additional tokens (besides gas token)
+  },
+  
+  "chain_state": {
+    "current_time": 0,
+    "operating_mode": "operator",
+    "inner_code_commitment": [0, 0, 0, 0, 0, 0, 0, 0],
+    "outer_code_commitment": [0, 0, 0, 0, 0, 0, 0, 0],
+    "genesis_da_height": 0
+  },
+  
+  "paymaster": {
+    // Paymaster can cover gas fees for users
+    "payers": [
+      {
+        "payer_address": "0xA6edfca3AA985Dd3CC728BFFB700933a986aC085",
+        "policy": {
+          "default_payee_policy": { "allow": {} },
+          "payees": [],
+          "authorized_updaters": [],
+          "authorized_sequencers": "all"
+        },
+        "sequencers_to_register": [
+          "0000000000000000000000000000000000000000000000000000000000000000"
+        ]
+      }
+    ]
+  },
+  
+  "prover_incentives": {
+    "proving_penalty": [10, 10],
+    "minimum_bond": [1000, 1000],
+    "initial_provers": [
+      ["0xA6edfca3AA985Dd3CC728BFFB700933a986aC085", "200000"]
+    ]
+  },
+  
+  "sequencer_registry": {
+    "minimum_bond": "5000",
+    "sequencer_config": {
+      "seq_rollup_address": "0xA6edfca3AA985Dd3CC728BFFB700933a986aC085",
+      "seq_da_address": "0000000000000000000000000000000000000000000000000000000000000000",
+      "seq_bond": "100000000000",
+      "is_preferred_sequencer": true
+    }
+  },
+  
+  // These modules are not configured for this deployment
+  "uniqueness": null,
+  "blob_storage": null,
+  "revenue_share": null,
+  "mailbox": null,
+  "interchain_gas_paymaster": null,
+  "merkle_tree_hook": null,
+  "warp": null,
+  "value_setter": null,
+  
+  // ===== VERITAS MODULES CONFIGURATION =====
+  // This section initializes the Veritas belief aggregation system
+  
+  "veritas_agent": {
+    // Initial agents with pre-allocated stake and score
+    // This seeds the system with test agents
+    "initial_agents": [
+      // Format: [address, {stake, score}]
+      // Alice: High stake (1000), default score (100)
+      // Weight = 1000 × 100 = 100,000
+      ["0xA6edfca3AA985Dd3CC728BFFB700933a986aC085", {"stake": 1000, "score": 100}],
+      
+      // Bob: Medium stake (500), default score (100)
+      // Weight = 500 × 100 = 50,000
+      ["0x23B6445f524daDee9fb576627740AaD23Afbe8b7", {"stake": 500, "score": 100}],
+      
+      // Carol: Highest stake (2000), default score (100)
+      // Weight = 2000 × 100 = 200,000
+      ["0x9b08ce57a93751aE790698A2C9ebc76A78F23E25", {"stake": 2000, "score": 100}]
+    ]
+  },
+  
+  "veritas_belief": {
+    // Initial belief/prediction market
+    // This creates a sample belief for agents to make predictions on
+    "initial_beliefs": [
+      {
+        "id": 1,  // Unique identifier
+        "question": "Will ETH exceed $5000 by Dec 2024?",  // The prediction market
+        "aggregate": 0.5,  // Starting at 50% probability (neutral)
+        "total_weight": 0  // No submissions yet
+      }
+    ]
+  },
+  
+  "veritas_submission": {
+    // Submission history starts empty
+    // Will be populated as agents submit predictions
+    "initial_submissions": []
+  }
+}

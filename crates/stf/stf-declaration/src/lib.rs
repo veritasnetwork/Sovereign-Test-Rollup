@@ -47,7 +47,7 @@ pub type Mailbox<S> = RawMailbox<S, Warp<S>>;
 ///  The `DispatchCall` implementation (derived by a macro) forwards the message to the appropriate module and executes its `call` method.
 #[derive(Clone, Default, Genesis, Hooks, DispatchCall, Event, MessageCodec, RuntimeRestApi)]
 #[cfg_attr(feature = "native", derive(CliWallet), expose_rpc)]
-#[genesis(serde(bound = "S::Address: serde::de::DeserializeOwned"))]
+#[genesis(serde(bound = "S::Address: serde::de::DeserializeOwned + serde::Serialize"))]
 pub struct Runtime<S: Spec>
 where
     S::Address: HyperlaneAddress,
@@ -84,4 +84,24 @@ where
     pub warp: Warp<S>,
     /// The ValueSetter module (recommended as a starting point for building new modules)
     pub value_setter: value_setter::ValueSetter<S>,
+    
+    // ===== VERITAS MODULES =====
+    // These three modules work together to implement a decentralized belief aggregation system
+    // They demonstrate cross-module communication and complex state management
+    
+    /// The Veritas Agent module for managing agents and their stakes
+    /// Handles: registration, stake management, reputation scores
+    /// Called by: Users directly (register, add/withdraw stake)
+    pub veritas_agent: veritas_agent::AgentModule<S>,
+    
+    /// The Veritas Belief module for managing beliefs/prediction markets
+    /// Handles: belief creation, aggregate tracking, weighted averaging
+    /// Called by: SubmissionModule (for aggregate updates)
+    pub veritas_belief: veritas_belief::BeliefModule<S>,
+    
+    /// The Veritas Submission module for orchestrating belief submissions
+    /// This is the main entry point for agents to submit predictions
+    /// It coordinates between AgentModule and BeliefModule
+    /// Called by: Users (to submit predictions)
+    pub veritas_submission: veritas_submission::SubmissionModule<S>,
 }

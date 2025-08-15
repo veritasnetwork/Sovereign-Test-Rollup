@@ -100,5 +100,45 @@
   "interchain_gas_paymaster": null,
   "merkle_tree_hook": null,
   "warp": null,
-  "value_setter": null
+  "value_setter": null,
+  "veritas_agent": {
+    "initial_agents": []
+  },
+  "veritas_belief": {
+    "initial_beliefs": [
+      {
+        "id": 1,
+        "question": "Will ETH exceed $5000 by Dec 2024?",
+        "aggregate": 0.5,
+        "total_weight": 0
+      },
+      {
+        "id": 2,
+        "question": "Will Bitcoin hit $100,000 in 2024?",
+        "aggregate": 0.4,
+        "total_weight": 0
+      },
+      {
+        "id": 3,
+        "question": "Will there be a US Fed rate cut in Q1 2025?",
+        "aggregate": 0.6,
+        "total_weight": 0
+      },
+      {
+        "id": 4,
+        "question": "Will AI regulation pass in EU by mid-2025?",
+        "aggregate": 0.7,
+        "total_weight": 0
+      },
+      {
+        "id": 5,
+        "question": "Will SpaceX complete Mars mission by 2030?",
+        "aggregate": 0.3,
+        "total_weight": 0
+      }
+    ]
+  },
+  "veritas_submission": {
+    "initial_submissions": []
+  }
 }

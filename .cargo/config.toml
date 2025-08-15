@@ -1,0 +1,13 @@
+[env]
+# Use GCC 14 for C++ compilation to avoid GCC 15 compatibility issues with RocksDB
+CC = "gcc-14"
+CXX = "g++-14"
+
+[build]
+# Use clang if available as an alternative
+# rustc-wrapper = "sccache"  # Uncomment if you have sccache
+
+[target.x86_64-unknown-linux-gnu]
+# Use GCC 14 toolchain
+# linker = "gcc-14"  # Let cargo use default linker
+# ar = "ar"  # Using default ar

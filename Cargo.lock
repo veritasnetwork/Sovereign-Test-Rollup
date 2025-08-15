@@ -11358,6 +11358,9 @@ dependencies = [
  "strum",
  "tracing",
  "value-setter",
+ "veritas-agent",
+ "veritas-belief",
+ "veritas-submission",
 ]
 
 [[package]]
@@ -12703,6 +12706,57 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1bddf1187be692e79c5ffeab891132dfb0f236ed36a43c7ed39f1165ee20191"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "veritas-agent"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "borsh",
+ "schemars",
+ "serde",
+ "sov-address",
+ "sov-bank",
+ "sov-modules-api",
+ "sov-state",
+ "sov-test-utils",
+ "strum",
+ "veritas-agent",
+]
+
+[[package]]
+name = "veritas-belief"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "borsh",
+ "schemars",
+ "serde",
+ "sov-address",
+ "sov-modules-api",
+ "sov-state",
+ "sov-test-utils",
+ "strum",
+ "veritas-belief",
+]
+
+[[package]]
+name = "veritas-submission"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "borsh",
+ "schemars",
+ "serde",
+ "sov-address",
+ "sov-modules-api",
+ "sov-state",
+ "sov-test-utils",
+ "strum",
+ "veritas-agent",
+ "veritas-belief",
+ "veritas-submission",
 ]
 
 [[package]]

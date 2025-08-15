@@ -7,6 +7,9 @@ members = [
   "crates/stf",
   "crates/stf/stf-declaration",
   "examples/value-setter",
+  "examples/veritas-agent",
+  "examples/veritas-belief",
+  "examples/veritas-submission",
   "scripts/soak-test",
 ]
 default-members = ["crates/rollup"]
@@ -64,6 +67,9 @@ sov-build = { git = "https://github.com/Sovereign-Labs/sovereign-sdk.git", rev =
 stf-starter = { path = "./crates/stf", default-features = false }
 stf-starter-declaration = { path = "./crates/stf/stf-declaration", default-features = false }
 value-setter = { path = "./examples/value-setter" }
+veritas-agent = { path = "./examples/veritas-agent" }
+veritas-belief = { path = "./examples/veritas-belief" }
+veritas-submission = { path = "./examples/veritas-submission" }
 strum = { version = "0.26.3", features = ["derive"] }
 
 axum = { version = "0.7.9", default-features = false }

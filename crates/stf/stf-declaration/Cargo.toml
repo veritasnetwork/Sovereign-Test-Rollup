@@ -31,6 +31,9 @@ sov-hyperlane-integration = { workspace = true }
 
 tracing = { workspace = true }
 value-setter = { workspace = true }
+veritas-agent = { path = "../../../examples/veritas-agent" }
+veritas-belief = { path = "../../../examples/veritas-belief" }
+veritas-submission = { path = "../../../examples/veritas-submission" }
 strum = { workspace = true }
 
 anyhow = { workspace = true }
@@ -60,6 +63,9 @@ native = [
 	"sov-capabilities/native",
 	"sov-state/native",
 	"value-setter/native",
+	"veritas-agent/native",
+	"veritas-belief/native",
+	"veritas-submission/native",
 	"sov-rollup-apis",
 	"sov-kernels/native",
 	"sov-paymaster/native",

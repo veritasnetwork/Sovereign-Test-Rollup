@@ -1,0 +1,32 @@
+[package]
+name = "veritas-belief"
+authors = { workspace = true }
+edition = { workspace = true }
+license = { workspace = true }
+version = { workspace = true }
+readme = "README.md"
+publish = false
+resolver = "2"
+
+[dependencies]
+anyhow = { workspace = true }
+borsh = { workspace = true, features = ["rc"] }
+serde = { workspace = true }
+schemars = { workspace = true }
+
+sov-modules-api = { workspace = true }
+sov-state = { workspace = true }
+
+[dev-dependencies]
+sov-address = { workspace = true, features = ["evm"] }
+veritas-belief = { path = ".", version = "*", features = ["native"] }
+sov-test-utils = { workspace = true }
+strum = { workspace = true }
+
+[features]
+default = []
+native = [
+    "sov-modules-api/native",
+    "sov-state/native",
+    "sov-address/native",
+]
