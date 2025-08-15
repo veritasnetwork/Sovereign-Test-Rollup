@@ -4,12 +4,15 @@
  */
 
 import chalk from 'chalk';
-import SimpleRollupClient from './simple-client.js';
 import { config } from './config.js';
 import SimpleAgentManager from './agents-simple.js';
 import SimpleBeliefManager from './beliefs-simple.js';
 import { Monitor } from './monitor.js';
-import { SimulationStats } from './types.js';
+
+import { createStandardRollup } from "@sovereign-sdk/web3";
+import { Secp256k1Signer } from "@sovereign-sdk/signers";
+import { computeAddress } from "ethers";
+import { RuntimeCall } from "./types";
 
 class VeritasSimulation {
   private rollupClient: any;
@@ -39,7 +42,7 @@ class VeritasSimulation {
       
       // Connect to rollup
       console.log('📡 Connecting to rollup at ' + config.rollupUrl);
-      this.rollupClient = new SimpleRollupClient(config.rollupUrl);
+      this.rollupClient = await createStandardRollup({url: config.rollupUrl});
       
       // Check if rollup is running
       const isHealthy = await this.rollupClient.healthCheck();
@@ -249,7 +252,7 @@ async function main() {
   
   try {
     await simulation.initialize();
-    await simulation.run();
+    // await simulation.run();
   } catch (error) {
     console.error(chalk.red('Fatal error:'), error);
     process.exit(1);

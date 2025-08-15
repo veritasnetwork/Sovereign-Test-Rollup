@@ -7,7 +7,8 @@
   "scripts": {
     "simulate": "node --experimental-wasm-modules --loader ts-node/esm src/index.ts",
     "monitor": "node --experimental-wasm-modules --loader ts-node/esm src/monitor.ts",
-    "clean": "rm -rf dist node_modules"
+    "clean": "rm -rf dist node_modules",
+    "schema": "quicktype -s schema ../../crates/stf/.artifacts/json-schema.json -o src/types.ts --top-level RuntimeCall"
   },
   "dependencies": {
     "@sovereign-sdk/signers": "0.2.0",
@@ -20,6 +21,7 @@
   "devDependencies": {
     "@types/node": "^22.14.1",
     "ts-node": "^10.9.2",
+    "quicktype": "^23.2.6",
     "typescript": "^5.8.3"
   }
 }

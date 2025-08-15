@@ -1,12 +1,12 @@
 //! SubmissionModule - Orchestrates belief submissions and scoring
-//! 
+//!
 //! This is the main interaction point for agents. It coordinates:
 //! - Accepting agent predictions
 //! - Calculating agent weights via AgentModule
 //! - Updating belief aggregates via BeliefModule
 //! - Computing score rewards based on accuracy
 //! - Recording submission history
-//! 
+//!
 //! This module demonstrates cross-module communication in Sovereign SDK
 //! by referencing and calling methods on other modules
 
@@ -15,35 +15,42 @@ use anyhow::{bail, Result};
 use schemars::JsonSchema;
 use sov_modules_api::macros::{serialize, UniversalWallet};
 use sov_modules_api::{
-    Context, Module, ModuleId, ModuleInfo, ModuleRestApi, Spec,
-    StateVec, TxState,
+    Context, Module, ModuleId, ModuleInfo, ModuleRestApi, Spec, StateVec, TxState,
 };
 use std::marker::PhantomData;
 use veritas_belief::BeliefId;
 
 /// Records a single prediction submission
 /// Stored for historical analysis and audit purposes
-#[derive(Clone, Debug, borsh::BorshSerialize, borsh::BorshDeserialize, serde::Serialize, serde::Deserialize, JsonSchema)]
+#[derive(
+    Clone,
+    Debug,
+    borsh::BorshSerialize,
+    borsh::BorshDeserialize,
+    serde::Serialize,
+    serde::Deserialize,
+    JsonSchema,
+)]
 pub struct Submission<S: Spec> {
     /// Address of the agent who made this submission
     pub agent: S::Address,
-    
+
     /// Which belief this prediction is for
     pub belief_id: BeliefId,
-    
+
     /// The probability value submitted (0.0 to 1.0)
     pub value: f64,
-    
+
     /// The agent's weight at time of submission (stake × score)
     pub weight: u64,
-    
+
     /// Block timestamp when submission was made
     /// Currently set to 0 (TODO: get from context)
     pub timestamp: u64,
 }
 
 /// SubmissionModule orchestrates the belief submission process
-/// 
+///
 /// KEY DESIGN: Cross-module references
 /// The #[module] attribute allows this module to reference other modules
 /// This enables cross-module method calls, demonstrating how modules
@@ -95,7 +102,7 @@ impl<S: Spec> Module for SubmissionModule<S> {
     }
 
     /// Entry point for transaction processing
-    /// 
+    ///
     /// NOTE: We accept value as u64 (0-100) instead of f64 (0.0-1.0)
     /// This is because the UniversalWallet trait doesn't support f64
     /// We convert to f64 internally for calculations
@@ -115,24 +122,32 @@ impl<S: Spec> Module for SubmissionModule<S> {
     }
 }
 
-#[derive(Clone, Debug, borsh::BorshSerialize, borsh::BorshDeserialize, serde::Serialize, serde::Deserialize, JsonSchema)]
-pub struct GenesisConfig<S> 
+#[derive(
+    Clone,
+    Debug,
+    borsh::BorshSerialize,
+    borsh::BorshDeserialize,
+    serde::Serialize,
+    serde::Deserialize,
+    JsonSchema,
+)]
+#[serde(bound = "S::Address: serde::Serialize + serde::de::DeserializeOwned")]
+pub struct GenesisConfig<S>
 where
     S: Spec,
-    S::Address: serde::Serialize + for<'a> serde::Deserialize<'a>,
 {
     pub initial_submissions: Vec<Submission<S>>,
 }
 
 impl<S: Spec> SubmissionModule<S> {
     /// Main submission logic - orchestrates the entire prediction process
-    /// 
+    ///
     /// This demonstrates the power of module composition:
     /// 1. Gets agent weight from AgentModule
     /// 2. Updates belief aggregate in BeliefModule
     /// 3. Calculates score rewards
     /// 4. Records submission history
-    /// 
+    ///
     /// FLOW:
     /// 1. Validate input
     /// 2. Get agent's weight (stake × score) via cross-module call
@@ -151,7 +166,7 @@ impl<S: Spec> SubmissionModule<S> {
         }
 
         let sender = context.sender();
-        
+
         // CROSS-MODULE CALL #1: Get agent's weight from AgentModule
         // This demonstrates how modules can call each other's public methods
         let weight = self.agent_module.get_weight(sender, state)?;
@@ -161,30 +176,32 @@ impl<S: Spec> SubmissionModule<S> {
 
         // CROSS-MODULE CALL #2: Update belief aggregate in BeliefModule
         // The new aggregate is returned so we can calculate score rewards
-        let new_aggregate = self.belief_module.update_aggregate(belief_id, value, weight, state)?;
-        
+        let new_aggregate = self
+            .belief_module
+            .update_aggregate(belief_id, value, weight, state)?;
+
         // SCORING MECHANISM:
         // Agents are rewarded based on how close their prediction is to consensus
         // Distance 0.0 = perfect match = ~100 point bonus
         // Distance 0.5 = far off = ~2 point bonus
         let distance = (value - new_aggregate).abs();
         let _score_delta = (100.0 / (1.0 + (distance * 100.0))) as u64;
-        
+
         // TODO: Currently we can't update scores because update_score is not exposed
         // in AgentModule's CallMessage. In a real implementation, we'd either:
         // 1. Add UpdateScore to CallMessage (but restrict who can call it)
         // 2. Make SubmissionModule a friend module with special access
         // 3. Use a different scoring mechanism
-        
+
         // Record submission for historical tracking
         let submission = Submission {
             agent: sender.clone(),
             belief_id,
             value,
             weight,
-            timestamp: 0,  // TODO: Get actual timestamp from context
+            timestamp: 0, // TODO: Get actual timestamp from context
         };
-        
+
         // StateVec.push appends to the list
         self.submissions.push(&submission, state)?;
 
@@ -198,7 +215,7 @@ impl<S: Spec> SubmissionModule<S> {
     ) -> Result<Vec<Submission<S>>> {
         let mut result = Vec::new();
         let len = self.submissions.len(state)?;
-        
+
         for i in 0..len {
             if let Some(submission) = self.submissions.get(i, state)? {
                 if submission.belief_id == belief_id {
@@ -206,23 +223,20 @@ impl<S: Spec> SubmissionModule<S> {
                 }
             }
         }
-        
+
         Ok(result)
     }
 
-    pub fn get_all_submissions(
-        &self,
-        state: &mut impl TxState<S>,
-    ) -> Result<Vec<Submission<S>>> {
+    pub fn get_all_submissions(&self, state: &mut impl TxState<S>) -> Result<Vec<Submission<S>>> {
         let mut result = Vec::new();
         let len = self.submissions.len(state)?;
-        
+
         for i in 0..len {
             if let Some(submission) = self.submissions.get(i, state)? {
                 result.push(submission);
             }
         }
-        
+
         Ok(result)
     }
 }
@@ -231,9 +245,8 @@ impl<S: Spec> SubmissionModule<S> {
 #[serialize(Borsh, Serde)]
 #[serde(rename_all = "snake_case")]
 pub enum CallMessage {
-    SubmitBelief { 
-        belief_id: BeliefId, 
-        value: u64  // Changed to u64 (multiply by 100 for percentage)
+    SubmitBelief {
+        belief_id: BeliefId,
+        value: u64, // Changed to u64 (multiply by 100 for percentage)
     },
 }
-

@@ -1,7 +1,7 @@
 {
   // ===== STANDARD MODULES CONFIGURATION =====
   "accounts": {
-    "accounts": []  // Initial account balances (empty for mock)
+    "accounts": [] // This is for account addresses aliasses, etc. Banalces are in bank moduel
   },
   
   "operator_incentives": {

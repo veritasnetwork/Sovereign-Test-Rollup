@@ -12722,6 +12722,7 @@ dependencies = [
  "sov-state",
  "sov-test-utils",
  "strum",
+ "tracing",
  "veritas-agent",
 ]
 

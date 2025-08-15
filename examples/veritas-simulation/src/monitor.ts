@@ -26,7 +26,7 @@ export class Monitor {
     
     // Header
     console.log(chalk.cyan.bold('\n╔═══════════════════════════════════════════════════════════════╗'));
-    console.log(chalk.cyan.bold('║          VERITAS BELIEF AGGREGATION SIMULATION               ║'));
+    console.log(chalk.cyan.bold('║          VERITAS BELIEF AGGREGATION SIMULATION                ║'));
     console.log(chalk.cyan.bold('╚═══════════════════════════════════════════════════════════════╝\n'));
     
     // Summary stats
