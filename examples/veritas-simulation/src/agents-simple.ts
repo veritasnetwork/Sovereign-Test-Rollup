@@ -39,16 +39,15 @@ export class SimpleAgentManager {
       submissions: 0
     };
 
-    // Check if agent is already registered
     try {
       // Access the rollup instance directly for queries
       const rollup = this.rollupClient;
-      // my_module_values_get_state_map_element
-      const existingAgent = await rollup.ro(agent.address);
+      const existingAgent = await rollup.http.get(`/modules/veritas-agent/state/agents/items/${agent.address}`);
       if (existingAgent) {
         console.log(chalk.yellow(`Agent ${agent.address} already registered, skipping registration`));
-        agent.stake = existingAgent.stake;
-        agent.score = existingAgent.score;
+        agent.stake = existingAgent.value.stake;
+        agent.score = existingAgent.value.score;
+        console.log("UPDATED AGENT: ", agent)
         this.agents.set(agent.address, agent);
         return;
       }
@@ -122,7 +121,7 @@ export class SimpleAgentManager {
       } catch (error: any) {
         console.log(chalk.red(`❌ Failed to register agent ${agent.address}`));
         console.log(chalk.red(`Error: ${error.message || error}`));
-        
+
         // Print full error details
         if (error.response?.data) {
           console.log(chalk.red(`Response: ${JSON.stringify(error.response.data, null, 2)}`));

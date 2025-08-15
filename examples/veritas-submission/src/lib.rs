@@ -199,7 +199,7 @@ impl<S: Spec> SubmissionModule<S> {
             belief_id,
             value,
             weight,
-            timestamp: 0, // TODO: Get actual timestamp from context
+            timestamp: 0, // TODO: Get actual from the chain-state module
         };
 
         // StateVec.push appends to the list

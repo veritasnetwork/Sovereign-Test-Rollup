@@ -254,7 +254,7 @@ async function main() {
   
   try {
     await simulation.initialize();
-    // await simulation.run();
+    await simulation.run();
   } catch (error) {
     console.error(chalk.red('Fatal error:'), error);
     process.exit(1);

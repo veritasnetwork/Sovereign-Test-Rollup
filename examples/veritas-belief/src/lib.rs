@@ -95,7 +95,7 @@ impl<S: Spec> Module for BeliefModule<S> {
         config: &Self::Config,
         state: &mut impl sov_modules_api::GenesisState<S>,
     ) -> Result<()> {
-        // Initialize beliefs from genesis config
+        tracing::debug!(beliefs = config.initial_beliefs.len(), "Genesis beliefs");
         for belief in &config.initial_beliefs {
             self.beliefs.set(&belief.id, belief, state)?;
             self.submission_counts.set(&belief.id, &0, state)?;
